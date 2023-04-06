@@ -10,11 +10,19 @@ export function CartaoInfo({ imagem, titulo, fonte, descricao, acao }) {
             onPress={() => setMostrarDescricao(!mostrarDescricao)}
             onLongPress={acao}
         >
-            <View style={estilos.containerTexto}>
-                <Text style={estilos.textoNome}>{titulo}</Text>
-                <Text style={estilos.textoFonte}>{fonte}</Text>
-                <Text style={[estilos.textoDescricao, mostrarDescricao && {display: "flex"}]}>{descricao}</Text>
-            </View>
+        {
+          imagem && (
+            <Image
+              source={{ uri: imagem }}
+              style={estilos.imagem}
+            />
+          )
+        }
+          <View style={estilos.containerTexto}>
+              <Text style={estilos.textoNome}>{titulo}</Text>
+              <Text style={estilos.textoFonte}>{fonte}</Text>
+              <Text style={[estilos.textoDescricao, mostrarDescricao && {display: "flex"}]}>{descricao}</Text>
+          </View>
         </TouchableOpacity>
     );
 }
