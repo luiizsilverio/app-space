@@ -1,44 +1,63 @@
 import { useState } from "react";
-import { View, Text, TextInput, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Image } from "react-native";
+import * as ImagePicker from 'expo-image-picker';
 
 import { salvarPost, atualizarPost, deletarPost } from "../../servicos/firestore";
 import { salvarImagem } from "../../servicos/storage";
 import { entradas } from "./entradas";
 import { alteraDados } from "../../utils/comum";
 import { IconeClicavel } from "../../componentes/IconeClicavel";
+import imagemPadrao from '../../assets/upload.jpeg';
 import estilos from "./estilos";
 
-const img = 'https://img.freepik.com/fotos-gratis/belos-planetas-no-espaco_23-2149288539.jpg?w=900&t=st=1680822204~exp=1680822804~hmac=86e063a9f20fbd6707801375739c53957a016533dbe17f5c840b17ec72f9a2e8';
+// const img = 'https://img.freepik.com/fotos-gratis/belos-planetas-no-espaco_23-2149288539.jpg?w=900&t=st=1680822204~exp=1680822804~hmac=86e063a9f20fbd6707801375739c53957a016533dbe17f5c840b17ec72f9a2e8';
 
 export default function Post({ navigation, route }) {
-    const [desabilitarEnvio, setDesabilitarEnvio] = useState(false);
-    const { item } = route?.params || {};
+  const [desabilitarEnvio, setDesabilitarEnvio] = useState(false);
+  const [imagem, setImagem] = useState(null);
+  const { item } = route?.params || {};
 
-    const [post, setPost] = useState({
-        titulo: item?.titulo || "",
-        fonte: item?.fonte || "",
-        descricao: item?.descricao || "",
-        imagemUrl: item?.imagemUrl || null
+  const [post, setPost] = useState({
+      titulo: item?.titulo || "",
+      fonte: item?.fonte || "",
+      descricao: item?.descricao || "",
+      imagemUrl: item?.imagemUrl || null
+  });
+
+  async function pickImage() {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,  /* de 0 a 1 */
     });
 
-    async function salvar() {
-        setDesabilitarEnvio(true);
+    console.log(result);
 
-        // faz upload da imagem
-        const url = await salvarImagem(img);
-
-        // salva o post no Firestore
-        if (item) {
-            await atualizarPost(item.id, post);
-        } else {
-            await salvarPost({
-              ...post, 
-              imagemUrl: url
-            });
-        }        
-        
-        navigation.goBack();
+    if (!result.cancelled) {
+      setImagem(result.uri);
+      // setImagem(result.assets[0].uri); // versão >= 48 do Expo
     }
+  }
+
+  async function salvar() {
+    setDesabilitarEnvio(true);
+    
+    // salva o post no Firestore
+    if (item) {
+        await atualizarPost(item.id, post);
+        return navigation.goBack();      
+    } 
+
+    const idPost = await salvarPost({...post, imagemUrl: ''});            
+    navigation.goBack();
+
+    // faz upload da imagem
+    if (imagem !== null) {
+      const url = await salvarImagem(imagem, idPost);
+      await atualizarPost(idPost, {imagemUrl: url});
+    }
+  }
 
     return (
         <View style={estilos.container}>
@@ -72,6 +91,14 @@ export default function Post({ navigation, route }) {
                         />
                     </View>
                 ))}
+
+              <TouchableOpacity style={estilos.imagem} onPress={pickImage}>
+                <Image
+                  source={imagem ? {uri: imagem} : imagemPadrao}
+                  style={estilos.imagem}
+                />
+              </TouchableOpacity>
+
             </ScrollView>
 
             <TouchableOpacity 

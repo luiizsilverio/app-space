@@ -55,5 +55,6 @@ export default StyleSheet.create({
       height: 200,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
+      backgroundColor: "#21143e",
     }
 });

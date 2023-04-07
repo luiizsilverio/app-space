@@ -11,13 +11,21 @@ export function CartaoInfo({ imagem, titulo, fonte, descricao, acao }) {
             onLongPress={acao}
         >
         {
-          imagem && (
+          imagem !== null && imagem !== '' && (
             <Image
               source={{ uri: imagem }}
               style={estilos.imagem}
             />
+          )          
+        }
+        {
+          imagem === '' && (
+            <View
+              style={estilos.imagem}
+            />
           )
         }
+
           <View style={estilos.containerTexto}>
               <Text style={estilos.textoNome}>{titulo}</Text>
               <Text style={estilos.textoFonte}>{fonte}</Text>
