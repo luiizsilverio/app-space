@@ -12,7 +12,7 @@ Trata-se de um cadastro de corpos celestes que permite upload de imagens. Essas 
 
 
 ## :camera_flash: Screenshots
-![](https://github.com/luiizsilverio/app-space/blob/master/src/assets/app-space.png)
+![](https://github.com/luiizsilverio/app-space/blob/master/src/assets/app-space.gif)
 
 
 ## :car: Iniciando a aplicação
