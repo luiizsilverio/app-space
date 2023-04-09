@@ -11,6 +11,10 @@ Trata-se de um cadastro de corpos celestes que permite upload de imagens. Essas 
 - Storage do Firebase, para armazenar as imagens
 
 
+## :camera_flash: Screenshots
+![](https://github.com/luiizsilverio/app-space/blob/master/src/assets/app-space.png)
+
+
 ## :car: Iniciando a aplicação
 ```bash
 $ git clone https://github.com/luiizsilverio/app-space
