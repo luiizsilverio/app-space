@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Image } from "react-native";
-import * as ImagePicker from 'expo-image-picker';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
 
 import { salvarPost, atualizarPost, deletarPost } from "../../servicos/firestore";
 import { deletarImagem, salvarImagem } from "../../servicos/storage";
-import { entradas } from "./entradas";
-import { alteraDados } from "../../utils/comum";
+import { alteraDados, pickImageFromGallery } from "../../utils/comum";
 import { IconeClicavel } from "../../componentes/IconeClicavel";
-import imagemPadrao from '../../assets/upload.jpeg';
-import estilos from "./estilos";
 import { MenuInferior } from "../../componentes/MenuInferior";
+import imagemPadrao from '../../assets/upload.jpeg';
+import { entradas } from "./entradas";
+import estilos from "./estilos";
 
 // const img = 'https://img.freepik.com/fotos-gratis/belos-planetas-no-espaco_23-2149288539.jpg?w=900&t=st=1680822204~exp=1680822804~hmac=86e063a9f20fbd6707801375739c53957a016533dbe17f5c840b17ec72f9a2e8';
 
@@ -27,20 +26,7 @@ export default function Post({ navigation, route }) {
   });
 
   async function pickImage() {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,  /* de 0 a 1 */
-    });
-
-    console.log(result);
-
-    if (!result.cancelled) {
-      setImagem(result.uri);
-      // setImagem(result.assets[0].uri); // versão >= 48 do Expo
-    }
-
+    pickImageFromGallery(setImagem);    
     setShowMenu(false);
   }
 
@@ -49,11 +35,15 @@ export default function Post({ navigation, route }) {
     
     // salva o post no Firestore
     if (item) {
-        await verificarAlteracaoPost();
-        return navigation.goBack();      
+      await verificarAlteracaoPost();
+      return navigation.goBack();      
     } 
 
-    const idPost = await salvarPost({...post, imagemUrl: ''});            
+    const idPost = await salvarPost({
+      ...post, 
+      imagemUrl: imagem ? '' : null
+    });
+
     navigation.goBack();
 
     // faz upload da imagem
@@ -75,9 +65,33 @@ export default function Post({ navigation, route }) {
     }
   }
 
+  function excluirPostCompleto() {
+
+    async function confirmaExclusao() {
+      deletarPost(item.id); 
+      if (item.imagemUrl !== null) {
+        deletarImagem(item.id);
+      }
+      navigation.goBack();
+    }
+
+    if (!item) return;
+    if (!Alert.alert('Excluir Post', 'Confirma exclusão?', [
+      {
+        text: "Confirma", 
+        style: 'cancel',  // mostra em vermelho, somente iOS
+        onPress: () => confirmaExclusao()
+      },
+      { 
+        text: "Cancela",
+        // onPress: () => {}
+      },
+    ]));    
+  }
+
   async function removerImagem() {
     if (!item) return;
-    if (deletarImagem(item.id)) {
+    if (await deletarImagem(item.id)) {
       await atualizarPost(item.id, { imagemUrl: null });
       navigation.goBack();
     }
@@ -89,7 +103,7 @@ export default function Post({ navigation, route }) {
         <Text style={estilos.titulo}>{item ? "Editar post" : "Novo Post"}</Text>
         <IconeClicavel 
           exibir={!!item} 
-          onPress={() => {deletarPost(item.id); navigation.goBack()}}
+          onPress={excluirPostCompleto}
           iconeNome="trash-2" 
         />
       </View>
